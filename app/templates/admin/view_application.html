@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Review — {{ app.user.full_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <a href="{{ url_for('admin.applications') }}" class="t-3 t-xs" style="display:inline-block;margin-bottom:.65rem;">← Applications</a>
+    <div class="flex-c g-2" style="flex-wrap:wrap;">
+      <div class="avatar" style="width:44px;height:44px;font-size:.95rem;">{{ app.user.initials }}</div>
+      <div style="flex:1;">
+        <h1 class="h2" style="margin-bottom:.15rem;">{{ app.user.full_name }}</h1>
+        <p class="t-3 t-sm">
+          {{ app.job.title }} at {{ app.job.company.name }}
+          &middot; submitted {{ app.submitted_at.strftime('%B %d, %Y') }}
+        </p>
+      </div>
+      <span class="status {{ app.status_color }}" style="font-size:.8rem;padding:.4rem .9rem;">{{ app.status }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="padding-top:1.75rem;padding-bottom:3.5rem;">
+  <div style="display:grid;grid-template-columns:1fr 290px;gap:1.75rem;align-items:start;">
+
+    <!-- left column -->
+    <div>
+
+      <!-- pipeline -->
+      <div class="card mb-3">
+        <div class="fw-6 mb-3">Pipeline stage</div>
+        {% set stages = ["Submitted","Under Review","Screening","Assessment","Interview","Final Review","Offer"] %}
+        <div class="pipeline">
+          {% for stage in stages %}
+          {% if not loop.first %}
+          <div class="pipe-line {{ 'done' if app.stage_index >= loop.index }}"></div>
+          {% endif %}
+          <div class="pipe-step">
+            <div class="pipe-dot {{ 'active' if app.stage_index == loop.index0 else ('done' if app.stage_index > loop.index0) }}">
+              {{ 'v' if app.stage_index > loop.index0 else loop.index }}
+            </div>
+            <div class="pipe-label">{{ stage }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- cover note -->
+      {% if app.cover_note %}
+      <div class="card mb-3">
+        <div class="fw-6 mb-2">Cover note</div>
+        <p class="t-2 t-sm" style="line-height:1.8;white-space:pre-wrap;">{{ app.cover_note }}</p>
+      </div>
+      {% endif %}
+
+      <!-- answers -->
+      {% if answers %}
+      <div class="card mb-3">
+        <div class="fw-6 mb-3">Application answers</div>
+        <div style="display:flex;flex-direction:column;gap:1.1rem;">
+          {% for key, value in answers.items() %}
+          {% if value %}
+          <div>
+            <div class="label mb-1">{{ key | replace('_', ' ') | title }}</div>
+            {% if value is iterable and value is not string %}
+            <div class="pill-wrap">
+              {% for item in value %}<span class="tag">{{ item }}</span>{% endfor %}
+            </div>
+            {% else %}
+            <p class="t-2 t-sm" style="line-height:1.7;white-space:pre-wrap;">{{ value }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- candidate snapshot -->
+      <div class="card">
+        <div class="fw-6 mb-3">Candidate profile</div>
+        <div class="grid-2">
+          {% for lbl, val in [
+            ("University", app.user.university),
+            ("Major",      app.user.major),
+            ("Graduation", app.user.graduation),
+            ("GPA",        app.user.gpa),
+            ("Location",   app.user.location),
+            ("Work auth",  app.user.work_auth),
+          ] %}
+          {% if val %}
+          <div>
+            <div class="label mb-1">{{ lbl }}</div>
+            <div class="fw-5 t-sm">{{ val }}</div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if app.user.skills_list %}
+        <div class="divider"></div>
+        <div class="label mb-2">Skills</div>
+        <div class="pill-wrap">
+          {% for s in app.user.skills_list %}<span class="chip">{{ s }}</span>{% endfor %}
+        </div>
+        {% endif %}
+
+        {% if app.user.bio %}
+        <div class="divider"></div>
+        <div class="label mb-2">Bio</div>
+        <p class="t-2 t-sm" style="line-height:1.7;">{{ app.user.bio }}</p>
+        {% endif %}
+
+        <div class="divider"></div>
+        <div class="flex" style="gap:.4rem;flex-wrap:wrap;">
+          {% if app.user.github %}
+          <a href="{{ app.user.github }}" target="_blank" class="btn btn-ghost btn-sm">GitHub</a>
+          {% endif %}
+          {% if app.user.linkedin %}
+          <a href="{{ app.user.linkedin }}" target="_blank" class="btn btn-ghost btn-sm">LinkedIn</a>
+          {% endif %}
+          {% if app.user.portfolio %}
+          <a href="{{ app.user.portfolio }}" target="_blank" class="btn btn-ghost btn-sm">Portfolio</a>
+          {% endif %}
+          <a href="{{ url_for('admin.view_candidate', user_id=app.user.id) }}" class="btn btn-outline btn-sm">Full profile</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- right: action panel -->
+    <div style="position:sticky;top:calc(var(--nav-h) + 1.25rem);">
+      <div class="card mb-3">
+        <div class="fw-6 mb-3">Move stage</div>
+        <form method="POST" action="{{ url_for('admin.update_status', app_id=app.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-group mb-3">
+            <label class="label">Status</label>
+            <select name="status" class="form-control">
+              {% for s in statuses %}
+              <option value="{{ s }}" {{ 'selected' if app.status == s }}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Update status</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="label mb-2">Quick actions</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem;">
+          {% for stage, cls in [("Interview","btn-outline"),("Offer","btn-primary"),("Rejected","btn-danger")] %}
+          {% if app.status != stage %}
+          <form method="POST" action="{{ url_for('admin.update_status', app_id=app.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="{{ stage }}">
+            <button type="submit" class="btn {{ cls }} btn-sm btn-full">
+              {% if stage == 'Interview' %}Move to Interview
+              {% elif stage == 'Offer' %}Send Offer
+              {% else %}Reject
+              {% endif %}
+            </button>
+          </form>
+          {% endif %}
+          {% endfor %}
+        </div>
+
+        <div class="divider"></div>
+        <div class="label mb-1">Submitted</div>
+        <div class="t-sm t-2">{{ app.submitted_at.strftime('%b %d, %Y %I:%M %p') }}</div>
+        <div class="label mb-1 mt-2">Last updated</div>
+        <div class="t-sm t-2">{{ app.updated_at.strftime('%b %d, %Y %I:%M %p') }}</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

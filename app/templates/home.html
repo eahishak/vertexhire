@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <p class="hero-eyebrow">Student Hiring Infrastructure</p>
+        <h1 class="h1 hero-title">
+          Land your<br><span>dream role</span><br>faster.
+        </h1>
+        <p class="hero-sub">
+          One profile. Dynamic applications. Real-time pipeline tracking.
+          VertexHire connects students to top companies in one place.
+        </p>
+        <div class="hero-actions">
+          <a href="{{ url_for('jobs.listing') }}" class="btn btn-primary btn-lg">Browse jobs</a>
+          {% if not current_user.is_authenticated %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-lg">Create free account</a>
+          {% else %}
+          <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline btn-lg">My dashboard</a>
+          {% endif %}
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-n">{{ stats.jobs }}+</div>
+            <div class="hero-stat-l">Open roles</div>
+          </div>
+          <div>
+            <div class="hero-stat-n">{{ stats.companies }}+</div>
+            <div class="hero-stat-l">Companies</div>
+          </div>
+          <div>
+            <div class="hero-stat-n">100%</div>
+            <div class="hero-stat-l">Free for students</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- decorative preview panel — desktop only -->
+      <div class="hero-visual">
+        <div class="hv-card">
+          <div class="flex-c g-2 mb-2">
+            <div class="co-logo" style="background:#5B57FF;width:36px;height:36px;border-radius:8px;font-size:.82rem;">S</div>
+            <div>
+              <div class="fw-6 t-sm">Software Engineer Intern</div>
+              <div class="t-3 t-xs">Stripe &middot; San Francisco, CA</div>
+            </div>
+          </div>
+          <div class="jc-tags mb-2">
+            <span class="tag">Python</span>
+            <span class="tag">Go</span>
+            <span class="tag tag-gray">Hybrid</span>
+            <span class="tag tag-gray">Internship</span>
+          </div>
+          <div class="divider" style="margin:.75rem 0;"></div>
+          <div class="flex-c" style="justify-content:space-between;">
+            <span class="t-sm fw-6 t-2">$8k – $10k / mo</span>
+            <span class="status s-green">Accepting apps</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;">
+          <div class="hv-mini">
+            <div class="co-logo" style="background:#000;width:30px;height:30px;border-radius:7px;font-size:.76rem;">N</div>
+            <div>
+              <div class="t-xs fw-6">PM Intern</div>
+              <div class="t-3" style="font-size:.7rem;">Notion</div>
+            </div>
+          </div>
+          <div class="hv-mini">
+            <div class="co-logo" style="background:#5E6AD2;width:30px;height:30px;border-radius:7px;font-size:.76rem;">L</div>
+            <div>
+              <div class="t-xs fw-6">Backend Eng</div>
+              <div class="t-3" style="font-size:.7rem;">Linear</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hv-mini">
+          <div class="avatar" style="width:30px;height:30px;font-size:.68rem;">JD</div>
+          <div style="flex:1;">
+            <div class="t-xs fw-6">Application submitted</div>
+            <div class="t-3" style="font-size:.7rem;">Anthropic &middot; Research Engineer</div>
+          </div>
+          <span class="status s-blue">Submitted</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- company strip -->
+<section class="section-sm" style="background:var(--surface);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <p class="label" style="text-align:center;margin-bottom:1.1rem;">Companies hiring now</p>
+    <div class="logos-row">
+      {% for c in companies %}
+      <div class="logo-pill">{{ c.name }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- featured jobs -->
+<section class="section">
+  <div class="container">
+    <div class="sec-head">
+      <div>
+        <div class="sec-title">Featured opportunities</div>
+        <div class="sec-sub">Curated roles from top companies</div>
+      </div>
+      <a href="{{ url_for('jobs.listing') }}" class="btn btn-outline btn-sm">View all</a>
+    </div>
+    <div class="grid-3">
+      {% for job in featured_jobs %}
+      <a href="{{ url_for('jobs.detail', job_id=job.id) }}" style="display:block;">
+        <div class="card card-hover job-card">
+          <div class="jc-head">
+            <div class="co-logo" style="background:{{ job.company.color }};">{{ job.company.logo_initial }}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="jc-title truncate">{{ job.title }}</div>
+              <div class="jc-company">{{ job.company.name }} &middot; {{ job.location }}</div>
+            </div>
+          </div>
+          <div class="jc-tags">
+            <span class="tag tag-gray">{{ job.work_type }}</span>
+            <span class="tag tag-gray">{{ job.experience }}</span>
+            <span class="tag">{{ job.role_type }}</span>
+          </div>
+          <div class="jc-foot">
+            <span class="jc-salary">{{ job.salary_display }}</span>
+            <span class="jc-dead">Closes {{ job.deadline }}</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- how it works -->
+<section class="section" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:2.75rem;">
+      <p class="label mb-2">How it works</p>
+      <h2 class="h2">From discovery to offer in one place</h2>
+    </div>
+    <div class="grid-3">
+      {% for num, title, desc in [
+        ("01", "Build your profile",  "Add your skills, education, and links once. VertexHire reuses them across every application automatically."),
+        ("02", "Discover and apply",  "Browse roles by type, location, and experience level. Role-adaptive forms ask only what's relevant to the position."),
+        ("03", "Track your pipeline", "Follow every application from Submitted through Screening, Interview, and Offer in real time.")
+      ] %}
+      <div class="card" style="padding:1.75rem;">
+        <div style="font-size:1.75rem;font-weight:800;color:var(--accent);opacity:.2;line-height:1;margin-bottom:.7rem;">{{ num }}</div>
+        <div class="h3 mb-2">{{ title }}</div>
+        <p class="t-2 t-sm">{{ desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if not current_user.is_authenticated %}
+<section class="section">
+  <div class="container" style="text-align:center;max-width:540px;margin:0 auto;">
+    <p class="label mb-2">Ready to start</p>
+    <h2 class="h2 mb-2">Your career starts here.</h2>
+    <p class="t-2 mb-4">Create a free account in under a minute and start applying today.</p>
+    <div class="hero-actions" style="justify-content:center;">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Get started free</a>
+      <a href="{{ url_for('jobs.listing') }}"  class="btn btn-outline btn-lg">Browse jobs first</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

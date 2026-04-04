@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Applications — Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="flex-c" style="justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <a href="{{ url_for('admin.index') }}" class="t-3 t-xs" style="display:inline-block;margin-bottom:.4rem;">← Overview</a>
+        <h1 class="h2">Applications</h1>
+        <p class="t-3 t-sm mt-1">{{ applications|length }} result{{ 's' if applications|length != 1 }}</p>
+      </div>
+    </div>
+    <form method="GET" action="{{ url_for('admin.applications') }}" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1.25rem;">
+      <select name="status" class="f-chip" onchange="this.form.submit()">
+        <option value="">All statuses</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if selected_status == s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <select name="job_id" class="f-chip" onchange="this.form.submit()">
+        <option value="">All jobs</option>
+        {% for job in jobs %}
+        <option value="{{ job.id }}" {{ 'selected' if selected_job == job.id|string }}>{{ job.title }} — {{ job.company.name }}</option>
+        {% endfor %}
+      </select>
+      {% if selected_status or selected_job %}
+      <a href="{{ url_for('admin.applications') }}" class="f-chip" style="color:var(--s-red-t);border-color:#FECACA;">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="container" style="padding-top:1.75rem;padding-bottom:3.5rem;">
+  {% if applications %}
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Candidate</th>
+          <th>Role</th>
+          <th>Company</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+        <tr>
+          <td>
+            <div class="flex-c g-2">
+              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;">{{ app.user.initials }}</div>
+              <div>
+                <div class="fw-5 t-sm">{{ app.user.full_name }}</div>
+                <div class="t-3 t-xs">{{ app.user.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="fw-5 t-sm">{{ app.job.title }}</td>
+          <td class="t-3 t-sm">{{ app.job.company.name }}</td>
+          <td><span class="status {{ app.status_color }}">{{ app.status }}</span></td>
+          <td class="t-3 t-xs">{{ app.submitted_at.strftime('%b %d, %Y') }}</td>
+          <td><a href="{{ url_for('admin.view_application', app_id=app.id) }}" class="btn btn-outline btn-sm">Review</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">—</div>
+    <div class="empty-title">No applications found</div>
+    <a href="{{ url_for('admin.applications') }}" class="btn btn-outline btn-sm mt-2">Clear filters</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

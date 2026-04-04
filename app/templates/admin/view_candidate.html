@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ user.full_name }} — Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <a href="{{ url_for('admin.candidates') }}" class="t-3 t-xs" style="display:inline-block;margin-bottom:.65rem;">← Candidates</a>
+    <div class="flex-c g-2" style="flex-wrap:wrap;">
+      <div class="avatar" style="width:44px;height:44px;font-size:.95rem;">{{ user.initials }}</div>
+      <div>
+        <h1 class="h2" style="margin-bottom:.15rem;">{{ user.full_name }}</h1>
+        <p class="t-3 t-sm">{{ user.email }} &middot; joined {{ user.created_at.strftime('%B %Y') }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="padding-top:1.75rem;padding-bottom:3.5rem;">
+  <div style="display:grid;grid-template-columns:260px 1fr;gap:1.75rem;align-items:start;">
+
+    <!-- profile card -->
+    <div class="card" style="text-align:center;padding:1.5rem 1.25rem;">
+      <div class="profile-avatar">{{ user.initials }}</div>
+      <div class="fw-6 mb-1">{{ user.full_name }}</div>
+      {% if user.university %}<div class="t-3 t-xs">{{ user.university }}</div>{% endif %}
+      {% if user.major     %}<div class="t-3 t-xs">{{ user.major }}</div>{% endif %}
+      {% if user.graduation%}<div class="t-3 t-xs mt-1">Graduating {{ user.graduation }}</div>{% endif %}
+
+      <div class="divider"></div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;text-align:left;">
+        {% for lbl, val in [("Location", user.location), ("Work auth", user.work_auth), ("GPA", user.gpa)] %}
+        {% if val %}
+        <div class="flex-c" style="justify-content:space-between;">
+          <span class="t-3 t-xs">{{ lbl }}</span>
+          <span class="fw-5 t-xs">{{ val }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+
+      {% if user.skills_list %}
+      <div class="divider"></div>
+      <div class="label mb-2">Skills</div>
+      <div class="pill-wrap" style="justify-content:center;">
+        {% for s in user.skills_list %}<span class="chip">{{ s }}</span>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if user.bio %}
+      <div class="divider"></div>
+      <p class="t-2 t-xs" style="line-height:1.7;text-align:left;">{{ user.bio }}</p>
+      {% endif %}
+
+      <div class="divider"></div>
+      <div class="flex" style="gap:.35rem;flex-wrap:wrap;justify-content:center;">
+        {% if user.github    %}<a href="{{ user.github }}"    target="_blank" class="btn btn-ghost btn-sm">GitHub</a>{% endif %}
+        {% if user.linkedin  %}<a href="{{ user.linkedin }}"  target="_blank" class="btn btn-ghost btn-sm">LinkedIn</a>{% endif %}
+        {% if user.portfolio %}<a href="{{ user.portfolio }}" target="_blank" class="btn btn-ghost btn-sm">Portfolio</a>{% endif %}
+      </div>
+    </div>
+
+    <!-- applications -->
+    <div>
+      <div class="fw-6 mb-3">Applications ({{ applications|length }})</div>
+      {% if applications %}
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="data-table">
+          <thead>
+            <tr><th>Role</th><th>Company</th><th>Status</th><th>Submitted</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for app in applications %}
+            <tr>
+              <td class="fw-5 t-sm">{{ app.job.title }}</td>
+              <td class="t-3 t-sm">{{ app.job.company.name }}</td>
+              <td><span class="status {{ app.status_color }}">{{ app.status }}</span></td>
+              <td class="t-3 t-xs">{{ app.submitted_at.strftime('%b %d, %Y') }}</td>
+              <td><a href="{{ url_for('admin.view_application', app_id=app.id) }}" class="btn btn-outline btn-sm">Review</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty">
+        <div class="empty-title">No applications yet</div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

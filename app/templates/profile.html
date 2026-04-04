@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1 class="h2">My Profile</h1>
+    <p class="t-3 t-sm mt-1">Profile strength: <strong style="color:var(--accent);">{{ current_user.profile_strength }}%</strong></p>
+    <div class="strength-bar mt-2" style="max-width:300px;">
+      <div class="strength-fill" style="width:{{ current_user.profile_strength }}%;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="profile-layout">
+
+    <!-- left: preview card -->
+    <div>
+      <div class="card" style="text-align:center;padding:1.5rem 1.25rem;">
+        <div class="profile-avatar">{{ current_user.initials }}</div>
+        <div class="fw-6 mb-1">{{ current_user.full_name }}</div>
+        {% if current_user.university %}
+        <div class="t-3 t-xs">{{ current_user.university }}</div>
+        {% endif %}
+        {% if current_user.major %}
+        <div class="t-3 t-xs">{{ current_user.major }}</div>
+        {% endif %}
+        {% if current_user.graduation %}
+        <div class="t-3 t-xs mt-1">Graduating {{ current_user.graduation }}</div>
+        {% endif %}
+
+        {% if current_user.bio %}
+        <div class="divider"></div>
+        <p class="t-sm t-2" style="line-height:1.7;text-align:left;">{{ current_user.bio }}</p>
+        {% endif %}
+
+        {% if current_user.skills_list %}
+        <div class="divider"></div>
+        <div class="label mb-2">Skills</div>
+        <div class="pill-wrap" style="justify-content:center;">
+          {% for s in current_user.skills_list %}
+          <span class="chip">{{ s }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="divider"></div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;">
+          {% if current_user.github %}
+          <a href="{{ current_user.github }}"   target="_blank" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">GitHub</a>
+          {% endif %}
+          {% if current_user.linkedin %}
+          <a href="{{ current_user.linkedin }}" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">LinkedIn</a>
+          {% endif %}
+          {% if current_user.portfolio %}
+          <a href="{{ current_user.portfolio }}" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">Portfolio</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- right: edit form -->
+    <div>
+      <div class="card">
+        <h2 class="h3 mb-4">Edit profile</h2>
+        <form method="POST" action="{{ url_for('auth.profile') }}" novalidate>
+          {{ form.hidden_tag() }}
+
+          <!-- personal -->
+          <div class="label mb-3">Personal</div>
+          <div class="form-grid mb-3">
+            <div class="form-group">
+              {{ form.first_name.label(class="label") }}
+              {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
+              {% for e in form.first_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="form-group">
+              {{ form.last_name.label(class="label") }}
+              {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
+              {% for e in form.last_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+          <div class="form-grid mb-3">
+            <div class="form-group">
+              {{ form.location.label(class="label") }}
+              {{ form.location(class="form-control", placeholder="City, State") }}
+            </div>
+            <div class="form-group">
+              {{ form.work_auth.label(class="label") }}
+              {{ form.work_auth(class="form-control") }}
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- education -->
+          <div class="label mb-3">Education</div>
+          <div class="form-grid-3 mb-3">
+            <div class="form-group">
+              {{ form.university.label(class="label") }}
+              {{ form.university(class="form-control", placeholder="MIT") }}
+            </div>
+            <div class="form-group">
+              {{ form.major.label(class="label") }}
+              {{ form.major(class="form-control", placeholder="Computer Science") }}
+            </div>
+            <div class="form-group">
+              {{ form.gpa.label(class="label") }}
+              {{ form.gpa(class="form-control", placeholder="3.8") }}
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            {{ form.graduation.label(class="label") }}
+            {{ form.graduation(class="form-control", placeholder="May 2026") }}
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- skills & links -->
+          <div class="label mb-3">Skills &amp; links</div>
+          <div class="form-group mb-3">
+            {{ form.skills.label(class="label") }}
+            {{ form.skills(class="form-control", placeholder="Python, React, SQL, Figma…") }}
+          </div>
+          <div class="form-grid mb-3">
+            <div class="form-group">
+              {{ form.github.label(class="label") }}
+              {{ form.github(class="form-control", placeholder="https://github.com/you") }}
+            </div>
+            <div class="form-group">
+              {{ form.linkedin.label(class="label") }}
+              {{ form.linkedin(class="form-control", placeholder="https://linkedin.com/in/you") }}
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            {{ form.portfolio.label(class="label") }}
+            {{ form.portfolio(class="form-control", placeholder="https://yoursite.com") }}
+          </div>
+          <div class="form-group mb-4">
+            {{ form.bio.label(class="label") }}
+            {{ form.bio(class="form-control", placeholder="A short summary of your background and goals…", rows="4") }}
+          </div>
+
+          {{ form.submit(class="btn btn-primary btn-lg") }}
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

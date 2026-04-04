@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- logo mark -->
+    <div style="display:flex;justify-content:center;margin-bottom:1.75rem;">
+      <div class="nav-mark" style="width:42px;height:42px;border-radius:11px;font-size:1rem;">V</div>
+    </div>
+
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-sub">Sign in to your VertexHire account</p>
+
+    <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="form-group mb-3">
+        {{ form.email.label(class="label") }}
+        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+           placeholder="you@university.edu", autocomplete="email") }}
+        {% for e in form.email.errors %}
+        <div class="invalid-feedback">{{ e }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group mb-3">
+        {{ form.password.label(class="label") }}
+        <div style="position:relative;">
+          {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+             placeholder="••••••••", autocomplete="current-password",
+             id="pw-field", type="password") }}
+          <button type="button" onclick="togglePw()" tabindex="-1"
+            style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+                   background:none;border:none;cursor:pointer;color:var(--text-3);
+                   font-size:.78rem;font-weight:500;padding:.25rem;">
+            Show
+          </button>
+        </div>
+        {% for e in form.password.errors %}
+        <div class="invalid-feedback">{{ e }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="flex-c" style="justify-content:space-between;margin-bottom:1.4rem;">
+        <label class="flex-c g-1 t-sm t-2" style="cursor:pointer;gap:.45rem;">
+          {{ form.remember(style="accent-color:var(--accent);width:14px;height:14px;") }}
+          Stay signed in
+        </label>
+      </div>
+
+      {{ form.submit(class="btn btn-primary btn-full btn-lg") }}
+    </form>
+
+    <div class="auth-divider">or</div>
+
+    <p class="t-sm t-2" style="text-align:center;">
+      Don't have an account?
+      <a href="{{ url_for('auth.register') }}" class="t-accent fw-6">Create one free</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePw() {
+  const f = document.getElementById('pw-field');
+  const btn = f.nextElementSibling;
+  if (f.type === 'password') { f.type = 'text';     btn.textContent = 'Hide'; }
+  else                       { f.type = 'password'; btn.textContent = 'Show'; }
+}
+</script>
+{% endblock %}

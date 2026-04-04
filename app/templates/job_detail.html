@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} at {{ job.company.name }}{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="jd-hero">
+  <div class="container">
+    <a href="{{ url_for('jobs.listing') }}" class="text-3 text-sm" style="display:inline-flex;align-items:center;gap:.35rem;margin-bottom:1.5rem;">
+      ← Back to jobs
+    </a>
+    <div class="flex-center gap-2 mb-2">
+      <div class="company-logo" style="background:{{ job.company.color }};width:52px;height:52px;border-radius:12px;font-size:1.2rem;">
+        {{ job.company.logo_initial }}
+      </div>
+      <div>
+        <h1 class="h2" style="margin-bottom:.2rem;">{{ job.title }}</h1>
+        <div class="text-2">{{ job.company.name }} · {{ job.company.industry }}</div>
+      </div>
+    </div>
+    <div class="jd-meta">
+      <span class="tag tag--gray">{{ job.location }}</span>
+      <span class="tag tag--gray">{{ job.work_type }}</span>
+      <span class="tag tag--gray">{{ job.experience }}</span>
+      <span class="tag">{{ job.role_type }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="container">
+  <div class="jd-body">
+    <!-- Left: details -->
+    <div>
+      <div class="card mb-3">
+        <h2 class="h3 mb-2">About the role</h2>
+        <p class="text-2" style="line-height:1.8;">{{ job.description }}</p>
+      </div>
+
+      <div class="card mb-3">
+        <h2 class="h3 mb-2">Required skills</h2>
+        <div class="pill-skills">
+          {% for skill in job.skills_list %}
+          <span class="tag">{{ skill }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="h3 mb-2">Role details</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          {% set details = [
+            ("Location", job.location),
+            ("Work type", job.work_type),
+            ("Experience", job.experience),
+            ("Role type", job.role_type),
+            ("Compensation", job.salary_display),
+            ("Application deadline", job.deadline),
+          ] %}
+          {% for label, value in details %}
+          <div>
+            <div class="label mb-1">{{ label }}</div>
+            <div class="fw-600 text-sm">{{ value }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: apply card -->
+    <div class="jd-sticky">
+      <div class="card">
+        <div class="flex-center gap-2 mb-3">
+          <div class="company-logo" style="background:{{ job.company.color }};width:38px;height:38px;border-radius:9px;font-size:.9rem;">
+            {{ job.company.logo_initial }}
+          </div>
+          <div>
+            <div class="fw-600">{{ job.company.name }}</div>
+            <div class="text-3 text-sm">{{ job.company.industry }}</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem;">
+          <div class="flex-center gap-1 text-sm text-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {{ job.location }}
+          </div>
+          <div class="flex-center gap-1 text-sm text-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            {{ job.work_type }}
+          </div>
+          <div class="flex-center gap-1 text-sm text-2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Deadline: {{ job.deadline }}
+          </div>
+          <div class="flex-center gap-1 text-sm fw-600">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            {{ job.salary_display }}
+          </div>
+        </div>
+
+        {% if already_applied %}
+          <div class="btn btn--full" style="background:var(--s-green);color:var(--s-green-t);border-color:#BBF7D0;cursor:default;">✓ Application submitted</div>
+        {% elif current_user.is_authenticated %}
+          <a href="{{ url_for('jobs.apply', job_id=job.id) }}" class="btn btn--primary btn--full btn--lg">Apply now</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}?next={{ request.url }}" class="btn btn--primary btn--full btn--lg">Sign in to apply</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn--outline btn--full btn--sm mt-2" style="text-align:center;">Create free account</a>
+        {% endif %}
+
+        <p class="text-3" style="font-size:.75rem;text-align:center;margin-top:1rem;">
+          {{ job.applicant_count }} student{{ 's' if job.applicant_count != 1 }} have applied
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

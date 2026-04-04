@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Candidates — Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <a href="{{ url_for('admin.index') }}" class="t-3 t-xs" style="display:inline-block;margin-bottom:.4rem;">← Overview</a>
+    <h1 class="h2">Candidates</h1>
+    <p class="t-3 t-sm mt-1">{{ users|length }} registered student{{ 's' if users|length != 1 }}</p>
+  </div>
+</div>
+
+<div class="container" style="padding-top:1.75rem;padding-bottom:3.5rem;">
+  {% if users %}
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>University</th>
+          <th>Major</th>
+          <th>Applications</th>
+          <th>Joined</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>
+            <div class="flex-c g-2">
+              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;">{{ user.initials }}</div>
+              <div>
+                <div class="fw-5 t-sm">{{ user.full_name }}</div>
+                <div class="t-3 t-xs">{{ user.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="t-2 t-sm">{{ user.university or '—' }}</td>
+          <td class="t-2 t-sm">{{ user.major or '—' }}</td>
+          <td>
+            <span class="tag">{{ user.applications.count() }}</span>
+          </td>
+          <td class="t-3 t-xs">{{ user.created_at.strftime('%b %d, %Y') }}</td>
+          <td><a href="{{ url_for('admin.view_candidate', user_id=user.id) }}" class="btn btn-outline btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">—</div>
+    <div class="empty-title">No candidates yet</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

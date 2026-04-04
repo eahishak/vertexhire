@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Admin Overview{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="flex-c" style="justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <p class="label mb-1">Admin</p>
+        <h1 class="h2">Overview</h1>
+        <p class="t-3 t-sm mt-1">Hiring pipeline at a glance.</p>
+      </div>
+      <div class="flex g-2">
+        <a href="{{ url_for('admin.analytics') }}"    class="btn btn-outline btn-sm">Analytics</a>
+        <a href="{{ url_for('admin.applications') }}" class="btn btn-primary btn-sm">All applications</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="padding-top:1.75rem;padding-bottom:3.5rem;">
+
+  <!-- top stats -->
+  <div class="analytics-grid mb-4">
+    <div class="an-card">
+      <div class="an-n">{{ total_apps }}</div>
+      <div class="an-l">Total applications</div>
+    </div>
+    <div class="an-card">
+      <div class="an-n" style="color:var(--accent);">{{ total_users }}</div>
+      <div class="an-l">Registered students</div>
+    </div>
+    <div class="an-card">
+      <div class="an-n" style="color:var(--s-purple-t);">{{ total_jobs }}</div>
+      <div class="an-l">Active listings</div>
+    </div>
+    <div class="an-card">
+      <div class="an-n" style="color:var(--s-green-t);">{{ total_offers }}</div>
+      <div class="an-l">Offers extended</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+
+    <!-- stage breakdown -->
+    <div class="card">
+      <div class="fw-6 mb-3">Pipeline breakdown</div>
+      {% set sc = {
+        'Submitted':'s-blue','Under Review':'s-blue',
+        'Screening':'s-amber','Assessment':'s-amber',
+        'Interview':'s-purple','Final Review':'s-purple',
+        'Offer':'s-green','Rejected':'s-red','Withdrawn':'s-gray'
+      } %}
+      <div style="display:flex;flex-direction:column;gap:.55rem;">
+        {% for status, count in status_counts.items() %}
+        {% if count > 0 %}
+        <div class="flex-c" style="justify-content:space-between;">
+          <span class="status {{ sc[status] }}">{{ status }}</span>
+          <span class="fw-6 t-sm">{{ count }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- top roles by applicants -->
+    <div class="card">
+      <div class="flex-c" style="justify-content:space-between;margin-bottom:1rem;">
+        <div class="fw-6">Top roles by applicants</div>
+      </div>
+      {% if top_jobs %}
+      <table class="data-table">
+        <thead><tr><th>Role</th><th>Company</th><th>Apps</th></tr></thead>
+        <tbody>
+          {% for title, company, cnt in top_jobs %}
+          <tr>
+            <td class="fw-5">{{ title }}</td>
+            <td class="t-3">{{ company }}</td>
+            <td><span class="tag">{{ cnt }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="t-3 t-sm">No applications yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- recent applications -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div class="fw-6">Recent applications</div>
+      <a href="{{ url_for('admin.applications') }}" class="t-3 t-xs">See all</a>
+    </div>
+    {% if recent_apps %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Candidate</th>
+          <th>Role</th>
+          <th>Company</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in recent_apps %}
+        <tr>
+          <td>
+            <div class="flex-c g-2">
+              <div class="avatar" style="width:28px;height:28px;font-size:.65rem;">{{ app.user.initials }}</div>
+              <div>
+                <div class="fw-5 t-sm">{{ app.user.full_name }}</div>
+                <div class="t-3 t-xs">{{ app.user.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="fw-5 t-sm">{{ app.job.title }}</td>
+          <td class="t-3 t-sm">{{ app.job.company.name }}</td>
+          <td><span class="status {{ app.status_color }}">{{ app.status }}</span></td>
+          <td class="t-3 t-xs">{{ app.submitted_at.strftime('%b %d, %Y') }}</td>
+          <td><a href="{{ url_for('admin.view_application', app_id=app.id) }}" class="btn btn-outline btn-sm">Review</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><div class="empty-title">No applications yet.</div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
