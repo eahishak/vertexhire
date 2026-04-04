@@ -3,44 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}VertexHire{% endblock %} — Student Hiring Platform</title>
-  <meta name="description" content="Discover internships and jobs, apply in one place, track your pipeline.">
+  <title>{% block title %}VertexHire{% endblock %} | Student Hiring Platform</title>
+  <meta name="description" content="Discover internships and jobs, apply in one place, track your entire hiring pipeline.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body>
 
 <nav class="nav">
   <div class="container nav-inner">
+
     <a href="{{ url_for('main.home') }}" class="nav-logo">
       <div class="nav-mark">V</div>
       VertexHire
     </a>
 
     <ul class="nav-links">
-      <li><a href="{{ url_for('main.home') }}"    class="{{ 'active' if request.endpoint == 'main.home' }}">Home</a></li>
-      <li><a href="{{ url_for('jobs.listing') }}" class="{{ 'active' if request.blueprint == 'jobs' }}">Jobs</a></li>
+      <li><a href="{{ url_for('main.home') }}"
+             class="{{ 'active' if request.endpoint == 'main.home' }}">Home</a></li>
+      <li><a href="{{ url_for('jobs.listing') }}"
+             class="{{ 'active' if request.blueprint == 'jobs' }}">Jobs</a></li>
       {% if current_user.is_authenticated and not current_user.is_admin %}
-        <li><a href="{{ url_for('dashboard.index') }}" class="{{ 'active' if request.blueprint == 'dashboard' }}">Dashboard</a></li>
-        <li><a href="{{ url_for('auth.profile') }}"    class="{{ 'active' if request.endpoint == 'auth.profile' }}">Profile</a></li>
+        <li><a href="{{ url_for('dashboard.index') }}"
+               class="{{ 'active' if request.endpoint == 'dashboard.index' }}">Dashboard</a></li>
+        <li><a href="{{ url_for('dashboard.analytics') }}"
+               class="{{ 'active' if request.endpoint == 'dashboard.analytics' }}">My Analytics</a></li>
+        <li><a href="{{ url_for('auth.profile') }}"
+               class="{{ 'active' if request.endpoint == 'auth.profile' }}">Profile</a></li>
       {% endif %}
       {% if current_user.is_authenticated and current_user.is_admin %}
-        <li><a href="{{ url_for('admin.index') }}"        class="{{ 'active' if request.endpoint == 'admin.index' }}">Overview</a></li>
-        <li><a href="{{ url_for('admin.applications') }}" class="{{ 'active' if request.endpoint == 'admin.applications' }}">Applications</a></li>
-        <li><a href="{{ url_for('admin.candidates') }}"   class="{{ 'active' if request.endpoint == 'admin.candidates' }}">Candidates</a></li>
-        <li><a href="{{ url_for('admin.analytics') }}"    class="{{ 'active' if request.endpoint == 'admin.analytics' }}">Analytics</a></li>
+        <li><a href="{{ url_for('admin.index') }}"
+               class="{{ 'active' if request.endpoint == 'admin.index' }}">Overview</a></li>
+        <li><a href="{{ url_for('admin.applications') }}"
+               class="{{ 'active' if request.endpoint == 'admin.applications' }}">Applications</a></li>
+        <li><a href="{{ url_for('admin.candidates') }}"
+               class="{{ 'active' if request.endpoint == 'admin.candidates' }}">Candidates</a></li>
+        <li><a href="{{ url_for('admin.analytics') }}"
+               class="{{ 'active' if request.endpoint == 'admin.analytics' }}">Analytics</a></li>
       {% endif %}
     </ul>
 
     <div class="nav-right">
       {% if current_user.is_authenticated %}
         {% if current_user.is_admin %}
-          <span class="nav-admin-badge">ADMIN</span>
+          <span class="nav-admin-badge">Admin</span>
         {% else %}
-          <div class="avatar">{{ current_user.initials }}</div>
+          <div class="avatar" title="{{ current_user.full_name }}">{{ current_user.initials }}</div>
         {% endif %}
         <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">Sign out</a>
       {% else %}
@@ -49,38 +61,51 @@
       {% endif %}
     </div>
 
-    <button class="nav-burger" aria-label="Menu" onclick="toggleMenu()">
+    <button class="nav-burger" aria-label="Toggle menu" onclick="toggleMenu()">
       <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
 
-<!-- mobile drawer -->
+<!-- mobile menu drawer -->
 <div class="nav-mobile" id="mobileMenu">
-  <a href="{{ url_for('main.home') }}"     onclick="toggleMenu()">Home</a>
-  <a href="{{ url_for('jobs.listing') }}"  onclick="toggleMenu()">Browse Jobs</a>
+  <a href="{{ url_for('main.home') }}"    onclick="toggleMenu()">Home</a>
+  <a href="{{ url_for('jobs.listing') }}" onclick="toggleMenu()">Browse Jobs</a>
   {% if current_user.is_authenticated %}
     {% if current_user.is_admin %}
-      <a href="{{ url_for('admin.index') }}"        onclick="toggleMenu()">Admin Overview</a>
+      <div class="divider"></div>
+      <a href="{{ url_for('admin.index') }}"        onclick="toggleMenu()">Overview</a>
       <a href="{{ url_for('admin.applications') }}" onclick="toggleMenu()">Applications</a>
       <a href="{{ url_for('admin.candidates') }}"   onclick="toggleMenu()">Candidates</a>
       <a href="{{ url_for('admin.analytics') }}"    onclick="toggleMenu()">Analytics</a>
     {% else %}
+      <div class="divider"></div>
       <a href="{{ url_for('dashboard.index') }}" onclick="toggleMenu()">Dashboard</a>
       <a href="{{ url_for('auth.profile') }}"    onclick="toggleMenu()">Profile</a>
     {% endif %}
-    <a href="{{ url_for('auth.logout') }}" onclick="toggleMenu()">Sign out</a>
+    <div class="divider"></div>
+    <a href="{{ url_for('auth.logout') }}" onclick="toggleMenu()" style="color:var(--text-3);">Sign out</a>
   {% else %}
+    <div class="divider"></div>
     <a href="{{ url_for('auth.login') }}"    onclick="toggleMenu()">Sign in</a>
     <a href="{{ url_for('auth.register') }}" onclick="toggleMenu()">Get started</a>
   {% endif %}
 </div>
 
+<!-- flash messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
   <div class="container" style="margin-top:.9rem;">
     {% for cat, msg in messages %}
-    <div class="flash flash-{{ cat }}">{{ msg }}</div>
+    <div class="flash flash-{{ cat }}">
+      <span class="flash-icon">
+        {% if cat == 'success' %}&#10003;
+        {% elif cat == 'danger' %}&#10005;
+        {% elif cat == 'info' %}&#8505;
+        {% else %}&#9888;{% endif %}
+      </span>
+      {{ msg }}
+    </div>
     {% endfor %}
   </div>
   {% endif %}
@@ -90,15 +115,15 @@
 
 <footer class="footer">
   <div class="container footer-inner">
-    <div class="nav-logo">
+    <a href="{{ url_for('main.home') }}" class="nav-logo">
       <div class="nav-mark">V</div>
       VertexHire
-    </div>
-    <p class="t-3 t-xs">Built for students. Free forever.</p>
+    </a>
+    <p class="t-3 t-xs">The candidate portal for ambitious people.</p>
     <div class="flex g-2">
-      <a href="{{ url_for('jobs.listing') }}" class="t-3 t-xs">Jobs</a>
+      <a href="{{ url_for('jobs.listing') }}" class="t-3 t-xs">Browse Jobs</a>
       {% if not current_user.is_authenticated %}
-      <a href="{{ url_for('auth.register') }}" class="t-3 t-xs">Sign up</a>
+      <a href="{{ url_for('auth.register') }}" class="t-3 t-xs">Sign Up</a>
       {% endif %}
     </div>
   </div>
@@ -108,7 +133,6 @@
 function toggleMenu() {
   document.getElementById('mobileMenu').classList.toggle('open');
 }
-/* close mobile menu on outside click */
 document.addEventListener('click', e => {
   const menu   = document.getElementById('mobileMenu');
   const burger = document.querySelector('.nav-burger');

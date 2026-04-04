@@ -24,15 +24,16 @@ def create_app(config_name="default"):
     from app.routes.auth import auth_bp
     from app.routes.jobs import jobs_bp
     from app.routes.dashboard import dashboard_bp
+    from app.routes.admin import admin_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(jobs_bp, url_prefix="/jobs")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
 
     with app.app_context():
         db.create_all()
-        _seed_data()
 
     return app
 
@@ -93,4 +94,20 @@ def _seed_data():
             salary_min=140000, salary_max=170000),
     ]
     db.session.add_all(jobs)
+    db.session.commit()
+
+
+def _seed_admin():
+    """Create default admin account if it doesn't exist."""
+    from app.models import User
+    if User.query.filter_by(email="admin@vertexhire.com").first():
+        return
+    admin = User(
+        first_name="Admin",
+        last_name="VertexHire",
+        email="admin@vertexhire.com",
+        is_admin=True,
+    )
+    admin.set_password("admin1234")
+    db.session.add(admin)
     db.session.commit()

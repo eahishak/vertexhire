@@ -2,84 +2,89 @@
 {% block title %}Apply — {{ job.title }}{% endblock %}
 
 {% block content %}
-<div class="container--sm" style="padding-top:2.5rem;padding-bottom:4rem;">
-
-  <!-- Header -->
-  <a href="{{ url_for('jobs.detail', job_id=job.id) }}" class="text-3 text-sm" style="display:inline-flex;align-items:center;gap:.35rem;margin-bottom:1.5rem;">
-    ← Back to role
-  </a>
-
-  <div class="flex-center gap-2 mb-4">
-    <div class="company-logo" style="background:{{ job.company.color }};width:48px;height:48px;border-radius:12px;font-size:1.1rem;">
-      {{ job.company.logo_initial }}
-    </div>
-    <div>
-      <h1 class="h3">{{ job.title }}</h1>
-      <div class="text-3 text-sm">{{ job.company.name }} · {{ job.role_type }}</div>
+<div class="page-header-accent">
+  <div class="container">
+    <a href="{{ url_for('jobs.detail', job_id=job.id) }}" class="t-3 t-xs" style="display:inline-flex;align-items:center;gap:.3rem;margin-bottom:1.1rem;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      Back to role
+    </a>
+    <div class="flex-c g-2">
+      <div class="co-logo" style="background:{{ job.company.color }};width:46px;height:46px;border-radius:11px;font-size:1rem;flex-shrink:0;">
+        {{ job.company.logo_initial }}
+      </div>
+      <div>
+        <h1 class="h2" style="margin-bottom:.15rem;">{{ job.title }}</h1>
+        <p class="t-3 t-sm">{{ job.company.name }} &middot; {{ job.role_type }}</p>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- Role-type badge -->
-  <div class="card" style="padding:1rem 1.25rem;margin-bottom:2rem;background:var(--accent-light);border-color:rgba(99,91,255,.2);">
-    <div class="flex-center gap-2">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span class="text-sm" style="color:var(--accent);font-weight:500;">
+<div class="container-sm" style="padding-top:2rem;padding-bottom:4rem;">
+
+  <!-- role type notice -->
+  <div class="card card-accent mb-4" style="padding:1rem 1.25rem;">
+    <div class="flex-c g-2">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span class="t-sm" style="color:var(--accent-dark);">
         These questions are tailored for <strong>{{ job.role_type }}</strong> roles.
       </span>
     </div>
   </div>
 
-  <!-- Form -->
   <div class="card">
     <form method="POST" action="{{ url_for('jobs.apply', job_id=job.id) }}" novalidate>
       {{ form.hidden_tag() }}
 
-      <!-- Cover note (all roles) -->
-      <div class="form-group mb-3">
-        {{ form.cover_note.label(class="form-group label") }}
-        {{ form.cover_note(class="form-control" + (" is-invalid" if form.cover_note.errors else ""),
-           placeholder="Tell us why you're excited about this role and what makes you a strong fit…") }}
-        {% for err in form.cover_note.errors %}
-        <div class="invalid-feedback">{{ err }}</div>
-        {% endfor %}
+      <!-- cover note -->
+      <div class="form-section">
+        <div class="form-section-title">Cover note</div>
+        <div class="form-group">
+          <label class="form-label">Why are you excited about this role?</label>
+          {{ form.cover_note(class="form-control" + (" is-invalid" if form.cover_note.errors else ""),
+             placeholder="Tell us what draws you to this role and what makes you a strong fit…",
+             rows="4") }}
+          {% for e in form.cover_note.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <!-- role-specific questions -->
+      <div class="form-section">
+        <div class="form-section-title">Role-specific questions</div>
+        <div class="flex-col" style="gap:1.1rem;">
+          {% for field in form %}
+            {% if field.name not in ('csrf_token', 'submit', 'cover_note') %}
+            <div class="form-group">
+              <label class="form-label">{{ field.label.text }}</label>
+
+              {% if field.type == 'SelectMultipleField' %}
+                {{ field(class="form-control") }}
+                <div class="form-hint">Hold Ctrl / Cmd to select multiple options.</div>
+
+              {% elif field.type == 'TextAreaField' %}
+                {{ field(class="form-control" + (" is-invalid" if field.errors else ""),
+                         placeholder="Share as much detail as you like…", rows="4") }}
+
+              {% elif field.type == 'SelectField' %}
+                {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
+
+              {% else %}
+                {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
+              {% endif %}
+
+              {% for e in field.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
       </div>
 
       <div class="divider"></div>
-      <div class="label mb-3">Role-specific questions</div>
 
-      {% for field in form %}
-        {% if field.name not in ('csrf_token', 'submit', 'cover_note') %}
-        <div class="form-group mb-3">
-          {{ field.label(class="form-group label") }}
-
-          {% if field.type == 'SelectMultipleField' %}
-          {{ field(class="form-control", size="5") }}
-          <div class="text-3" style="font-size:.75rem;margin-top:.25rem;">Hold Ctrl / Cmd to select multiple.</div>
-
-          {% elif field.type == 'TextAreaField' %}
-          {{ field(class="form-control" + (" is-invalid" if field.errors else ""),
-                   placeholder="Share as much detail as you'd like…") }}
-
-          {% elif field.type == 'SelectField' %}
-          {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
-
-          {% else %}
-          {{ field(class="form-control" + (" is-invalid" if field.errors else ""),
-                   placeholder="") }}
-          {% endif %}
-
-          {% for err in field.errors %}
-          <div class="invalid-feedback">{{ err }}</div>
-          {% endfor %}
-        </div>
-        {% endif %}
-      {% endfor %}
-
-      <div class="divider"></div>
-      {{ form.submit(class="btn btn--primary btn--full btn--lg") }}
-      <p class="text-3 text-sm" style="text-align:center;margin-top:.75rem;">
-        Review carefully — you can only submit once per role.
-      </p>
+      <div class="flex-c jc-between" style="flex-wrap:wrap;gap:1rem;">
+        <p class="t-xs t-3">Review carefully — you can only submit once per role.</p>
+        <button type="submit" class="btn btn-primary btn-lg">Submit application</button>
+      </div>
     </form>
   </div>
 </div>

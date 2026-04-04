@@ -5,8 +5,8 @@
 <div class="auth-page">
   <div class="auth-card" style="max-width:480px;">
 
-    <div style="display:flex;justify-content:center;margin-bottom:1.75rem;">
-      <div class="nav-mark" style="width:42px;height:42px;border-radius:11px;font-size:1rem;">V</div>
+    <div class="auth-logo-wrap">
+      <div class="auth-logo-mark">V</div>
     </div>
 
     <h1 class="auth-title">Create your account</h1>
@@ -17,13 +17,13 @@
 
       <div class="form-grid mb-3">
         <div class="form-group">
-          {{ form.first_name.label(class="label") }}
+          <label class="form-label">First name</label>
           {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""),
              placeholder="Alex") }}
           {% for e in form.first_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
         </div>
         <div class="form-group">
-          {{ form.last_name.label(class="label") }}
+          <label class="form-label">Last name</label>
           {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""),
              placeholder="Johnson") }}
           {% for e in form.last_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
@@ -31,43 +31,51 @@
       </div>
 
       <div class="form-group mb-3">
-        {{ form.email.label(class="label") }}
+        <label class="form-label">Email address</label>
         {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
            placeholder="you@university.edu", autocomplete="email") }}
         {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
       </div>
 
-      <div class="form-grid mb-3">
+      <div class="form-grid mb-2">
         <div class="form-group">
-          {{ form.password.label(class="label") }}
-          {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
-             placeholder="Min 8 characters", autocomplete="new-password") }}
+          <label class="form-label">Password</label>
+          <div class="input-wrap">
+            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+               placeholder="Min 8 characters", autocomplete="new-password",
+               id="pw-new", type="password", oninput="updateStrength(this.value)") }}
+            <button type="button" class="input-suffix" onclick="togglePw('pw-new', this)">Show</button>
+          </div>
           {% for e in form.password.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
         </div>
         <div class="form-group">
-          {{ form.confirm.label(class="label") }}
-          {{ form.confirm(class="form-control" + (" is-invalid" if form.confirm.errors else ""),
-             placeholder="Repeat password", autocomplete="new-password") }}
+          <label class="form-label">Confirm password</label>
+          <div class="input-wrap">
+            {{ form.confirm(class="form-control" + (" is-invalid" if form.confirm.errors else ""),
+               placeholder="Repeat password", autocomplete="new-password",
+               id="pw-confirm", type="password") }}
+            <button type="button" class="input-suffix" onclick="togglePw('pw-confirm', this)">Show</button>
+          </div>
           {% for e in form.confirm.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
         </div>
       </div>
 
-      <!-- password strength indicator -->
-      <div style="margin-bottom:1.25rem;">
-        <div style="display:flex;gap:.35rem;margin-bottom:.3rem;" id="strength-bars">
-          <div style="flex:1;height:3px;border-radius:99px;background:var(--border);" class="sb"></div>
-          <div style="flex:1;height:3px;border-radius:99px;background:var(--border);" class="sb"></div>
-          <div style="flex:1;height:3px;border-radius:99px;background:var(--border);" class="sb"></div>
-          <div style="flex:1;height:3px;border-radius:99px;background:var(--border);" class="sb"></div>
+      <!-- strength indicator -->
+      <div style="margin-bottom:1.4rem;">
+        <div class="pw-strength-bars" id="strength-bars">
+          <div class="pw-bar"></div>
+          <div class="pw-bar"></div>
+          <div class="pw-bar"></div>
+          <div class="pw-bar"></div>
         </div>
-        <span id="strength-label" class="t-xs t-3"></span>
+        <span id="strength-label" class="t-xs t-3" style="display:inline-block;margin-top:.3rem;"></span>
       </div>
 
-      {{ form.submit(class="btn btn-primary btn-full btn-lg") }}
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Create account</button>
     </form>
 
     <div class="auth-divider">or</div>
-    <p class="t-sm t-2" style="text-align:center;">
+    <p class="auth-footer">
       Already have an account?
       <a href="{{ url_for('auth.login') }}" class="t-accent fw-6">Sign in</a>
     </p>
@@ -77,35 +85,38 @@
 
 {% block scripts %}
 <script>
-/* password strength meter */
-const pwInput = document.querySelector('input[autocomplete="new-password"]');
-const bars    = document.querySelectorAll('.sb');
-const label   = document.getElementById('strength-label');
-const levels  = [
-  { color: 'var(--s-red-t)',    text: 'Weak' },
-  { color: 'var(--s-amber-t)',  text: 'Fair' },
-  { color: 'var(--s-amber-t)',  text: 'Good' },
+function togglePw(id, btn) {
+  const f  = document.getElementById(id);
+  const show = f.type === 'password';
+  f.type       = show ? 'text' : 'password';
+  btn.textContent = show ? 'Hide' : 'Show';
+}
+
+const levels = [
+  { color: 'var(--s-red-t)',    text: 'Weak'   },
+  { color: 'var(--s-amber-t)',  text: 'Fair'   },
+  { color: 'var(--s-amber-t)',  text: 'Good'   },
   { color: 'var(--s-green-t)',  text: 'Strong' },
 ];
 
 function score(pw) {
   let s = 0;
-  if (pw.length >= 8)              s++;
-  if (/[A-Z]/.test(pw))           s++;
-  if (/[0-9]/.test(pw))           s++;
-  if (/[^A-Za-z0-9]/.test(pw))    s++;
+  if (pw.length >= 8)           s++;
+  if (/[A-Z]/.test(pw))        s++;
+  if (/[0-9]/.test(pw))        s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
   return s;
 }
 
-if (pwInput) {
-  pwInput.addEventListener('input', () => {
-    const s = score(pwInput.value);
-    bars.forEach((b, i) => {
-      b.style.background = i < s ? levels[s - 1].color : 'var(--border)';
-    });
-    label.textContent   = pwInput.value ? levels[s - 1]?.text || '' : '';
-    label.style.color   = s > 0 ? levels[s - 1].color : 'var(--text-3)';
+function updateStrength(pw) {
+  const s     = score(pw);
+  const bars  = document.querySelectorAll('.pw-bar');
+  const label = document.getElementById('strength-label');
+  bars.forEach((b, i) => {
+    b.style.background = (pw && i < s) ? levels[s - 1].color : 'var(--border)';
   });
+  label.textContent = pw ? (levels[s - 1]?.text || '') : '';
+  label.style.color = s > 0 ? levels[s - 1].color : 'var(--text-3)';
 }
 </script>
 {% endblock %}

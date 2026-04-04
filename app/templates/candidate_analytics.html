@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}My Analytics{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header-accent">
+  <div class="container">
+    <div class="flex-c jc-between" style="flex-wrap:wrap;gap:1rem;">
+      <div>
+        <a href="{{ url_for('dashboard.index') }}" class="t-3 t-xs" style="display:inline-flex;align-items:center;gap:.3rem;margin-bottom:.65rem;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          Back to dashboard
+        </a>
+        <h1 class="h2">My Analytics</h1>
+        <p class="t-3 t-sm mt-1">A breakdown of your job search performance.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="padding-top:1.75rem;padding-bottom:4rem;">
+
+  {% if total == 0 %}
+  <div class="empty" style="padding:6rem 2rem;">
+    <div class="empty-icon">&#9633;</div>
+    <div class="empty-title">No data yet</div>
+    <div class="empty-sub">Apply to jobs and your analytics will appear here.</div>
+    <a href="{{ url_for('jobs.listing') }}" class="btn btn-primary btn-sm mt-3">Browse jobs</a>
+  </div>
+
+  {% else %}
+
+  <!-- KPIs -->
+  <div class="analytics-grid mb-4">
+    <div class="an-card">
+      <div class="an-n">{{ total }}</div>
+      <div class="an-l">Total applications</div>
+      <div class="an-bar"><div class="an-bar-fill" style="width:100%;"></div></div>
+    </div>
+    <div class="an-card">
+      <div class="an-n" style="color:var(--s-blue-t);">{{ response_rate }}%</div>
+      <div class="an-l">Response rate</div>
+      <div class="an-bar"><div class="an-bar-fill" style="width:{{ response_rate }}%;background:var(--s-blue-t);"></div></div>
+    </div>
+    <div class="an-card">
+      <div class="an-n" style="color:var(--s-purple-t);">{{ interview_rate }}%</div>
+      <div class="an-l">Interview rate</div>
+      <div class="an-bar"><div class="an-bar-fill" style="width:{{ interview_rate }}%;background:var(--s-purple-t);"></div></div>
+    </div>
+    <div class="an-card">
+      <div class="an-n" style="color:var(--s-green-t);">{{ offers }}</div>
+      <div class="an-l">Offers received</div>
+      <div class="an-bar"><div class="an-bar-fill" style="width:{{ [offers * 20, 100]|min }}%;background:var(--s-green-t);"></div></div>
+    </div>
+  </div>
+
+  <!-- charts row 1 -->
+  <div class="grid-2 mb-4">
+    <div class="card">
+      <div class="fw-6 mb-3">Applications over time</div>
+      <div class="chart-wrap">
+        <canvas id="timelineChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="fw-6 mb-3">Pipeline status</div>
+      <div style="max-width:280px;margin:0 auto;">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- charts row 2 -->
+  <div class="grid-2 mb-4">
+    <div class="card">
+      <div class="fw-6 mb-3">Applications by role type</div>
+      <div class="chart-wrap">
+        <canvas id="roleChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="fw-6 mb-3">Applications by company</div>
+      <div class="chart-wrap">
+        <canvas id="companyChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- application history table -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:1rem 1.3rem;border-bottom:1px solid var(--border);">
+      <div class="fw-6">Application history</div>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Company</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Applied</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications|sort(attribute='submitted_at', reverse=True) %}
+        <tr>
+          <td class="fw-5 t-sm">{{ app.job.title }}</td>
+          <td class="td-muted">{{ app.job.company.name }}</td>
+          <td><span class="tag">{{ app.job.role_type }}</span></td>
+          <td><span class="status {{ app.status_color }}">{{ app.status }}</span></td>
+          <td class="td-muted">{{ app.submitted_at.strftime('%b %d, %Y') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if total > 0 %}
+<script>
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.font.size   = 12;
+Chart.defaults.color       = '#8E8E9E';
+
+const accent   = '#5B57FF';
+const gridCol  = '#E3E3EA';
+
+/* timeline */
+const tlLabels = {{ timeline | map(attribute='label') | list | tojson }};
+const tlData   = {{ timeline | map(attribute='count') | list | tojson }};
+new Chart(document.getElementById('timelineChart'), {
+  type: 'line',
+  data: {
+    labels: tlLabels,
+    datasets: [{
+      data: tlData,
+      borderColor: accent,
+      backgroundColor: 'rgba(91,87,255,.08)',
+      borderWidth: 2,
+      pointRadius: 4,
+      pointBackgroundColor: accent,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      tension: .35,
+      fill: true,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { grid: { color: gridCol } },
+      y: { grid: { color: gridCol }, beginAtZero: true, ticks: { stepSize: 1 } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+/* status doughnut */
+const stLabels = {{ status_counts.keys()   | list | tojson }};
+const stData   = {{ status_counts.values() | list | tojson }};
+const stColors = ['#1D4ED8','#3B82F6','#92400E','#D97706','#5B21B6','#7C3AED','#14532D','#991B1B','#374151'];
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: stLabels,
+    datasets: [{ data: stData, backgroundColor: stColors, borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 } } }
+    }
+  }
+});
+
+/* role bar */
+const rlLabels = {{ role_counts.keys()   | list | tojson }};
+const rlData   = {{ role_counts.values() | list | tojson }};
+new Chart(document.getElementById('roleChart'), {
+  type: 'bar',
+  data: {
+    labels: rlLabels,
+    datasets: [{
+      data: rlData,
+      backgroundColor: ['rgba(91,87,255,.8)','rgba(109,40,217,.8)','rgba(21,128,61,.8)','rgba(180,83,9,.8)'],
+      borderRadius: 5, borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    scales: {
+      x: { grid: { color: gridCol }, beginAtZero: true, ticks: { stepSize: 1 } },
+      y: { grid: { display: false } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+/* company bar */
+const coLabels = {{ company_counts.keys()   | list | tojson }};
+const coData   = {{ company_counts.values() | list | tojson }};
+new Chart(document.getElementById('companyChart'), {
+  type: 'bar',
+  data: {
+    labels: coLabels,
+    datasets: [{
+      data: coData,
+      backgroundColor: 'rgba(91,87,255,.15)',
+      borderColor: accent,
+      borderWidth: 1.5,
+      borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: gridCol }, beginAtZero: true, ticks: { stepSize: 1 } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

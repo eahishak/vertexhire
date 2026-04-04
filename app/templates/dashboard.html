@@ -1,20 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 
-{% block head %}
-<style>
-  /* counter animation target */
-  .stat-n[data-target] { transition: none; }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="page-header">
+<div class="page-header-accent">
   <div class="container">
-    <div class="flex-c" style="justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div class="flex-c jc-between" style="flex-wrap:wrap;gap:1rem;">
       <div>
         <h1 class="h2">Welcome back, {{ current_user.first_name }}</h1>
-        <p class="t-3 t-sm mt-1">Track your applications and manage your hiring journey.</p>
+        <p class="t-3 t-sm mt-1">Your hiring pipeline at a glance.</p>
       </div>
       <a href="{{ url_for('jobs.listing') }}" class="btn btn-primary btn-sm">Browse jobs</a>
     </div>
@@ -26,31 +19,35 @@
 
     <!-- sidebar -->
     <aside class="dash-sidebar">
-      <div class="card mb-3" style="text-align:center;padding:1.5rem 1.25rem;">
-        <div class="profile-avatar">{{ current_user.initials }}</div>
-        <div class="fw-6">{{ current_user.full_name }}</div>
+      <div class="card mb-3" style="text-align:center;padding:1.5rem 1.15rem;">
+        <div class="avatar-xl mb-3">{{ current_user.initials }}</div>
+        <div class="fw-7">{{ current_user.full_name }}</div>
         {% if current_user.university %}
         <div class="t-3 t-xs mt-1">{{ current_user.university }}</div>
         {% endif %}
         {% if current_user.major %}
         <div class="t-3 t-xs">{{ current_user.major }}</div>
         {% endif %}
+
         <div class="divider"></div>
-        <div class="label mb-1">Profile strength</div>
-        <div style="font-size:1.35rem;font-weight:700;color:var(--accent);">{{ current_user.profile_strength }}%</div>
-        <div class="strength-bar mt-1">
+
+        <div class="flex-c jc-between mb-1">
+          <span class="label">Profile strength</span>
+          <span class="fw-7 t-sm" style="color:var(--accent);">{{ current_user.profile_strength }}%</span>
+        </div>
+        <div class="strength-bar">
           <div class="strength-fill" style="width:{{ current_user.profile_strength }}%;"></div>
         </div>
         {% if current_user.profile_strength < 80 %}
-        <a href="{{ url_for('auth.profile') }}" class="btn btn-outline btn-sm btn-full mt-3">Complete profile</a>
+        <a href="{{ url_for('auth.profile') }}" class="btn btn-muted btn-sm btn-full mt-3">Complete profile</a>
         {% endif %}
       </div>
 
       {% if current_user.skills_list %}
       <div class="card mb-3">
-        <div class="label mb-2">Your skills</div>
+        <div class="label mb-2">Skills</div>
         <div class="pill-wrap">
-          {% for s in current_user.skills_list[:8] %}
+          {% for s in current_user.skills_list[:10] %}
           <span class="chip">{{ s }}</span>
           {% endfor %}
         </div>
@@ -58,8 +55,9 @@
       {% endif %}
 
       <div class="card">
-        <div class="label mb-2">Quick links</div>
-        <div style="display:flex;flex-direction:column;gap:.3rem;">
+        <div class="label mb-2">Navigation</div>
+        <div class="flex-col" style="gap:.2rem;">
+          <a href="{{ url_for('dashboard.analytics') }}" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">My analytics</a>
           <a href="{{ url_for('auth.profile') }}" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">Edit profile</a>
           <a href="{{ url_for('jobs.listing') }}" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">Browse jobs</a>
           <a href="{{ url_for('auth.logout') }}"  class="btn btn-ghost btn-sm" style="justify-content:flex-start;color:var(--text-3);">Sign out</a>
@@ -68,7 +66,8 @@
     </aside>
 
     <!-- main -->
-    <main>
+    <main style="min-width:0;">
+
       <!-- stat row -->
       <div class="stat-row">
         <div class="stat-card">
@@ -85,30 +84,30 @@
         </div>
       </div>
 
-      <!-- applications table -->
+      <!-- applications -->
       <div class="card mb-4" style="padding:0;overflow:hidden;">
-        <div style="padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-          <div class="fw-6">Your applications</div>
+        <div style="padding:1rem 1.3rem;border-bottom:1px solid var(--border);" class="flex-c jc-between">
+          <div class="fw-6">Applications</div>
           <span class="t-3 t-xs">{{ applications|length }} total</span>
         </div>
 
         {% if applications %}
         <div style="overflow-x:auto;">
-          <!-- header -->
-          <div class="app-row" style="background:var(--bg);border-bottom:1px solid var(--border);">
+          <!-- table header -->
+          <div class="app-row app-row-head">
             <div></div>
             <div class="label">Role</div>
             <div class="label app-status">Status</div>
-            <div class="label app-date">Submitted</div>
+            <div class="label app-date">Applied</div>
             <div></div>
           </div>
 
           {% for app in applications %}
           <div class="app-row">
-            <div class="co-logo" style="background:{{ app.job.company.color }};width:36px;height:36px;border-radius:8px;font-size:.8rem;">
+            <div class="co-logo" style="background:{{ app.job.company.color }};width:36px;height:36px;border-radius:8px;font-size:.78rem;">
               {{ app.job.company.logo_initial }}
             </div>
-            <div>
+            <div style="min-width:0;">
               <div class="fw-6 t-sm truncate">{{ app.job.title }}</div>
               <div class="t-3 t-xs">{{ app.job.company.name }} &middot; {{ app.job.location }}</div>
             </div>
@@ -116,7 +115,7 @@
               <span class="status {{ app.status_color }}">{{ app.status }}</span>
             </div>
             <div class="app-date t-3 t-xs">{{ app.submitted_at.strftime('%b %d, %Y') }}</div>
-            <div style="display:flex;gap:.35rem;">
+            <div class="flex" style="gap:.3rem;">
               <a href="{{ url_for('jobs.detail', job_id=app.job_id) }}" class="btn btn-ghost btn-sm">View</a>
               {% if app.status not in ('Offer','Rejected','Withdrawn') %}
               <form method="POST" action="{{ url_for('dashboard.withdraw', app_id=app.id) }}"
@@ -128,19 +127,22 @@
             </div>
           </div>
 
-          <!-- pipeline row -->
+          <!-- pipeline progress -->
           {% set stages = ["Submitted","Under Review","Screening","Assessment","Interview","Final Review","Offer"] %}
-          <div style="padding:.65rem 1.4rem .9rem;background:var(--bg);border-bottom:1px solid var(--border);">
+          <div style="padding:.6rem 1.3rem .9rem;background:var(--surface-2);border-bottom:1px solid var(--border);">
             <div class="pipeline">
               {% for stage in stages %}
               {% if not loop.first %}
               <div class="pipe-line {{ 'done' if app.stage_index >= loop.index }}"></div>
               {% endif %}
               <div class="pipe-step">
-                <div class="pipe-dot {{ 'active' if app.stage_index == loop.index0 else ('done' if app.stage_index > loop.index0) }}">
-                  {{ 'v' if app.stage_index > loop.index0 else loop.index }}
+                <div class="pipe-dot
+                  {{ 'active' if app.stage_index == loop.index0 }}
+                  {{ 'done'   if app.stage_index >  loop.index0 }}
+                  {{ 'rejected' if app.status == 'Rejected' and loop.index0 == app.stage_index }}">
+                  {% if app.stage_index > loop.index0 %}&#10003;{% else %}{{ loop.index }}{% endif %}
                 </div>
-                <div class="pipe-label">{{ stage }}</div>
+                <div class="pipe-label {{ 'active' if app.stage_index == loop.index0 }}">{{ stage }}</div>
               </div>
               {% endfor %}
             </div>
@@ -150,10 +152,10 @@
 
         {% else %}
         <div class="empty">
-          <div class="empty-icon">[ ]</div>
+          <div class="empty-icon">&#9633;</div>
           <div class="empty-title">No applications yet</div>
-          <p>Start applying to track your progress here.</p>
-          <a href="{{ url_for('jobs.listing') }}" class="btn btn-primary btn-sm mt-2">Browse jobs</a>
+          <div class="empty-sub">Start applying and your pipeline will appear here.</div>
+          <a href="{{ url_for('jobs.listing') }}" class="btn btn-primary btn-sm mt-3">Browse jobs</a>
         </div>
         {% endif %}
       </div>
@@ -161,33 +163,38 @@
       <!-- recommended -->
       {% if recommended %}
       <div>
-        <div class="sec-head mb-3">
-          <div class="fw-6">Recommended for you</div>
-          <a href="{{ url_for('jobs.listing') }}" class="t-3 t-xs">See all</a>
+        <div class="sec-head">
+          <div>
+            <div class="sec-title">Recommended for you</div>
+            <div class="sec-sub">Jobs you haven't applied to yet</div>
+          </div>
+          <a href="{{ url_for('jobs.listing') }}" class="btn btn-ghost btn-sm">See all</a>
         </div>
         <div class="grid-2">
           {% for job in recommended %}
-          <div class="card job-card">
+          <div class="card card-hover job-card">
             <div class="jc-head">
               <div class="co-logo" style="background:{{ job.company.color }};">{{ job.company.logo_initial }}</div>
-              <div style="flex:1;min-width:0;">
+              <div class="jc-body">
                 <div class="jc-title truncate">{{ job.title }}</div>
-                <div class="jc-company">{{ job.company.name }}</div>
+                <div class="jc-co">{{ job.company.name }} &middot; {{ job.location }}</div>
               </div>
             </div>
             <div class="jc-tags">
               <span class="tag tag-gray">{{ job.work_type }}</span>
+              <span class="tag tag-gray">{{ job.experience }}</span>
               <span class="tag">{{ job.role_type }}</span>
             </div>
-            <div style="display:flex;gap:.4rem;margin-top:.35rem;">
-              <a href="{{ url_for('jobs.detail', job_id=job.id) }}" class="btn btn-outline btn-sm" style="flex:1;justify-content:center;">Details</a>
-              <a href="{{ url_for('jobs.apply',  job_id=job.id) }}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">Apply</a>
+            <div class="jc-actions">
+              <a href="{{ url_for('jobs.detail', job_id=job.id) }}" class="btn btn-outline btn-sm" style="flex:1;">Details</a>
+              <a href="{{ url_for('jobs.apply',  job_id=job.id) }}" class="btn btn-primary btn-sm" style="flex:1;">Apply</a>
             </div>
           </div>
           {% endfor %}
         </div>
       </div>
       {% endif %}
+
     </main>
   </div>
 </div>
@@ -195,17 +202,17 @@
 
 {% block scripts %}
 <script>
-/* animate stat counters on load */
+/* animate stat counters */
 document.querySelectorAll('.stat-n[data-target]').forEach(el => {
   const target = parseInt(el.dataset.target) || 0;
   if (!target) { el.textContent = '0'; return; }
   let n = 0;
-  const step = Math.max(1, Math.ceil(target / 25));
+  const step = Math.max(1, Math.ceil(target / 20));
   const t = setInterval(() => {
     n = Math.min(n + step, target);
     el.textContent = n;
     if (n >= target) clearInterval(t);
-  }, 28);
+  }, 30);
 });
 </script>
 {% endblock %}
